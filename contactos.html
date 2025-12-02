@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Contactos</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        .form-group { margin-bottom: 1em; }
+        label { display: block; margin-bottom: 0.2em; }
+        input[type="text"], input[type="email"] { width: 100%; padding: 0.5em; }
+        button { padding: 0.5em 1em; margin-right: 0.5em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 2em; }
+        th, td { border: 1px solid #ccc; padding: 0.5em; text-align: left; }
+        th { background: #f0f0f0; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Gestión de Contactos</h1>
+    <form id="contactForm" autocomplete="off">
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="contacto">Contacto</label>
+            <input type="text" id="contacto" name="contacto" required pattern="[0-9]{7,15}">
+        </div>
+        <button type="submit" id="btnCrear">Crear</button>
+        <button type="button" id="btnCancelar" style="display:none;">Cancelar</button>
+        <span id="msg" class=""></span>
+    </form>
+    <table id="tablaContactos">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Contacto</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <script>
+        let contactos = [];
+        let editIndex = null;
+        const form = document.getElementById('contactForm');
+        const nombre = document.getElementById('nombre');
+        const email = document.getElementById('email');
+        const contacto = document.getElementById('contacto');
+        const btnCrear = document.getElementById('btnCrear');
+        const btnCancelar = document.getElementById('btnCancelar');
+        const msg = document.getElementById('msg');
+        const tbody = document.querySelector('#tablaContactos tbody');
+
+        function renderTabla() {
+            tbody.innerHTML = '';
+            contactos.forEach((c, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${c.nombre}</td>
+                    <td>${c.email}</td>
+                    <td>${c.contacto}</td>
+                    <td>
+                        <button type="button" class="btnEditar" data-index="${i}">Editar</button>
+                        <button type="button" class="btnEliminar" data-index="${i}">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function resetForm() {
+            form.reset();
+            editIndex = null;
+            btnCrear.textContent = 'Crear';
+            btnCancelar.style.display = 'none';
+            btnCrear.disabled = false;
+        }
+
+        function showMsg(text, type) {
+            msg.textContent = text;
+            msg.className = type;
+            setTimeout(() => { msg.textContent = ''; }, 2000);
+        }
+
+        form.addEventListener('input', () => {
+            if (!form.checkValidity()) {
+                btnCrear.disabled = true;
+            } else {
+                btnCrear.disabled = false;
+            }
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!form.checkValidity()) {
+                showMsg('Datos inválidos', 'error');
+                return;
+            }
+            const nuevo = {
+                nombre: nombre.value.trim(),
+                email: email.value.trim(),
+                contacto: contacto.value.trim()
+            };
+            if (editIndex === null) {
+                contactos.push(nuevo);
+                showMsg('Contacto creado', 'success');
+            } else {
+                contactos[editIndex] = nuevo;
+                showMsg('Contacto actualizado', 'success');
+            }
+            renderTabla();
+            resetForm();
+        });
+
+        btnCancelar.addEventListener('click', resetForm);
+
+        tbody.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btnEditar')) {
+                editIndex = parseInt(e.target.dataset.index);
+                const c = contactos[editIndex];
+                nombre.value = c.nombre;
+                email.value = c.email;
+                contacto.value = c.contacto;
+                btnCrear.textContent = 'Actualizar';
+                btnCancelar.style.display = 'inline';
+                btnCrear.disabled = false;
+            } else if (e.target.classList.contains('btnEliminar')) {
+                const idx = parseInt(e.target.dataset.index);
+                contactos.splice(idx, 1);
+                renderTabla();
+                showMsg('Contacto eliminado', 'success');
+                resetForm();
+            }
+        });
+
+        // Inicializar
+        renderTabla();
+        resetForm();
+    </script>
+</body>
+</html>

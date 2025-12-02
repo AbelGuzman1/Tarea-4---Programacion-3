@@ -1,0 +1,11 @@
+/.venv/
+__pycache__/
+/.pytest_cache/
+/screenshots/
+*.pyc
+*.pyo
+*.pyd
+Thumbs.db
+.DS_Store
+# Optional: do not commit large driver binaries
+/Driver/
